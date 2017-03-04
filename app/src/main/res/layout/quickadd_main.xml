@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/ll_quickadd_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/border"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_quickadd_word"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="undefined"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_quickadd_newwordicon"
+                android:layout_weight="1"
+                android:visibility="invisible"
+                app:srcCompat="@drawable/icon_new"
+                android:layout_marginRight="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_height="50dp"
+                android:layout_width="50dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_quickadd_addbuttons"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btn_quickadd_addnow"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Add Now"
+                android:gravity="center_vertical|center_horizontal|center"
+                android:maxLines="1" />
+
+            <Button
+                android:id="@+id/btn_quickadd_addlater"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Later"
+                android:visibility="visible" />
+
+            <TextView
+                android:text="In 'Add Later'"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/tv_quickadd_inaddlater"
+                android:layout_weight="1"
+                android:visibility="gone"
+                android:gravity="center_vertical|center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_quickadd_addnow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="300dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+
+            <uk.co.cdevelop.fabvocab.Views.AddWordsResultsView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:minHeight="300dp"
+                android:minWidth="300dp"
+                android:id="@+id/awrv_quickadd_results"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_quickadd_wordreview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ListView
+                android:id="@+id/lv_quickadd_definitions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <Button
+                android:text="Close"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/btn_quickadd_close"
+                android:layout_weight="1"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/btn_quickadd_done"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignEnd="@+id/tv_quickadd_word"
+                android:layout_below="@+id/tv_quickadd_word"
+                android:layout_marginTop="11dp"
+                android:text="Done"
+                android:visibility="gone"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="uk.co.cdevelop.fabvocab.Activities.MainActivity"
+    android:gravity="center_vertical">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="1"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+
+        <TextView
+            android:text="Search:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_search"
+            android:layout_marginTop="14dp"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+        </TextView>
+
+
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/editSearch"
+                android:imeOptions="actionDone"
+                android:focusable="true"
+                android:layout_weight="1">
+            <requestFocus />
+            </EditText>
+
+            <Button
+                android:background="@drawable/icon_goto"
+                android:id="@+id/iv_addwords_exists"
+                android:layout_weight="1"
+                android:visibility="invisible"
+                android:layout_height="30dp"
+                android:layout_width="60dp" />
+
+        </LinearLayout>
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="115dp"
+            android:id="@+id/lv_didyoumean"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_vertical">
+
+            <Button
+                android:text="Search The Web"
+                android:layout_height="wrap_content"
+                android:id="@+id/btnSearch"
+                android:layout_weight="0.70"
+                android:layout_width="50dp"
+                android:enabled="false" />
+
+            <Button
+                android:text="Manual "
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/btn_manualaddword"
+                android:enabled="false" />
+
+        </LinearLayout>
+
+        <TextView
+            android:text="[WORD HERE]"
+            android:layout_width="match_parent"
+            android:id="@+id/tv_word"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            android:layout_height="40dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:textStyle="normal|bold|italic"
+            android:background="@drawable/border"
+            android:visibility="gone" />
+
+        <uk.co.cdevelop.fabvocab.Views.AddWordsResultsView
+            android:layout_width="wrap_content"
+            android:layout_height="250dp"
+            android:maxHeight="250dp"
+            android:id="@+id/adwv_addwords_resultsview"
+            android:visibility="gone" />
+
+        <Button
+            android:text="Add Definition(s)!"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_addword"
+            android:textAllCaps="false"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <TextView
+        android:text="Did you mean: ???"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_didyoumean"
+        android:layout_marginLeft="300px"
+        android:layout_marginTop="10px"
+        android:textStyle="normal|italic"
+        android:background="@drawable/border"
+        android:padding="5dp"
+        android:layout_alignParentEnd="true"
+        android:minWidth="500px"
+        android:visibility="invisible" />
+
+</RelativeLayout>

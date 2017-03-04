@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical">
+
+
+        <TextView
+            android:text="- WORD HERE -"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_word"
+            android:gravity="center_horizontal"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="172dp"
+            app:srcCompat="@drawable/blurredtext"
+            android:id="@+id/iv_blurreddefinitions" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/lv_definitions" />
+
+        <TextView
+            android:text="Rate Your Recall:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_recall"
+            android:textSize="24sp" />
+
+        <SeekBar
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="0"
+            android:id="@+id/rating_recall" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="172dp"
+            app:srcCompat="@drawable/blurredtext"
+            android:id="@+id/iv_blurredexamples" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/lv_examples" />
+
+        <TextView
+            android:text="Rate Your Fluency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_fluency"
+            android:textSize="24sp" />
+
+        <SeekBar
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="10"
+            android:progress="0"
+            android:id="@+id/rating_fluency" />
+
+        <Button
+            android:text="Move On!"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:id="@+id/btn_done" />
+    </LinearLayout>
+</ScrollView>

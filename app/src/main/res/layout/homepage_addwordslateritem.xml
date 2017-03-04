@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="10dp">
+
+    <TextView
+        android:text="TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_homepage_addwordslateritem_word"
+        android:layout_weight="1" />
+
+    <Button
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:id="@+id/btn_homepage_addwordslateritem_add"
+        android:background="@drawable/icon_add"
+        android:layout_marginLeft="10dp" />
+
+    <Button
+        android:id="@+id/btn_homepage_addwordslateritem_delete"
+        android:background="@drawable/icon_delete"
+        android:layout_height="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_width="30dp" />
+
+</LinearLayout>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:text="TextView"
+            android:layout_width="295dp"
+            android:id="@+id/dictionaryrow_textview"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical|center"
+            android:theme="@style/DefinitionText" />
+
+        <Button
+            android:layout_height="30dp"
+            android:id="@+id/btn_dictionaryrow_delete"
+            android:layout_weight="1"
+            android:background="@drawable/icon_delete"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_width="20dp" />
+    </LinearLayout>
+
+</LinearLayout>

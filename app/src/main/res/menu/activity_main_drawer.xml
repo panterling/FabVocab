@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_menu_manage"
+        android:title="Home" />
+    <item
+        android:id="@+id/nav_addwords"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="Add Words" />
+    <item
+        android:id="@+id/nav_mydictionary"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="My Dictionary" />
+    <item
+        android:id="@+id/nav_practice"
+        android:icon="@drawable/ic_menu_slideshow"
+        android:title="Practice!" />
+
+    <item android:title="Organise">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="My Learning Sets" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="My other menu item.." />
+        </menu>
+    </item>
+
+</menu>

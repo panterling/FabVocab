@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:id="@+id/lv_definitionrow">
+    <requestFocus />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_definition_id"
+        android:layout_weight="0.50"
+        android:visibility="gone" />
+
+    <uk.co.cdevelop.fabvocab.Views.EditTextWithImeEvents
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/et_definition"
+        android:inputType="text"
+        android:layout_weight="1.04"
+        android:maxWidth="160dp"
+        android:imeOptions="actionDone"
+        android:scrollHorizontally="false"
+        android:maxLines="100"
+
+        android:background="@null"
+        android:layout_marginBottom="10dp" />
+
+    <Button
+        android:layout_height="30dp"
+        android:id="@+id/btn_delete"
+        android:layout_width="30dp"
+        android:background="@drawable/icon_delete"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp" />
+</LinearLayout>
