@@ -9,16 +9,20 @@ import java.util.ArrayList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
+
 /**
  * Created by Chris on 30/01/2017.
  */
 
-public class MerriamWebsterAPIParser implements IAPIParser {
+public class MerriamWebsterAPIParser extends APIParser {
 
     @Override
-    public ArrayList<String> parse(String response) {
+    public APIResultSet parse(String response) {
 
-        ArrayList<String> definitions = new ArrayList<String>();
+        ArrayList<WordDefinition> definitions = new ArrayList<>();
+        String wavUrl = "";
 
         try {
             XmlPullParser parser = Xml.newPullParser();
@@ -26,7 +30,11 @@ public class MerriamWebsterAPIParser implements IAPIParser {
 
 
             String nextDefinition = "";
+            String currentWordType = "undefined: ";
+
             boolean inDt = false;
+            boolean inWav = false;
+            boolean inWordType = false;
 
             int eventType = parser.getEventType();
             while(eventType != XmlPullParser.END_DOCUMENT) {
@@ -39,11 +47,20 @@ public class MerriamWebsterAPIParser implements IAPIParser {
                             nextDefinition = "";
                         } else if(inDt) {
                             nextDefinition += " ";
+                        } else if (tagname.equals("wav")) {
+                            inWav = true;
+                        } else if (tagname.equals("fl")) {
+                            inWordType = true;
                         }
                         break;
                     case XmlPullParser.TEXT:
                         if(inDt) {
                             nextDefinition += parser.getText();
+                        } else if (inWav) {
+                            wavUrl = parser.getText();
+                        }
+                        else if (inWordType) {
+                            currentWordType = parser.getText();
                         }
                         break;
                     case XmlPullParser.END_TAG:
@@ -54,12 +71,17 @@ public class MerriamWebsterAPIParser implements IAPIParser {
                                 nextDefinition = nextDefinition.substring(1);
                             }
                             nextDefinition = nextDefinition.replace("\n", "");
-                            definitions.add(nextDefinition);
+                            nextDefinition = nextDefinition.trim();
+                            definitions.add(new WordDefinition(super.word, nextDefinition, currentWordType));
                         } else if(inDt) {
                             nextDefinition += " ";
+                        } else if (tagname.equals("wav")) {
+                            inWav = false;
+                        } else if (tagname.equals("fl")) {
+                            inWordType = false;
                         }
-
                         break;
+
                     default:
                         break;
                 }
@@ -72,7 +94,13 @@ public class MerriamWebsterAPIParser implements IAPIParser {
             Log.e("MerriamWebsterAPI", "Exception in parse: " + ex.getMessage() + "\n" + ex.getStackTrace().toString());
         }
 
-        return definitions;
+        if(wavUrl.length() > 0) {
+            wavUrl = "http://media.merriam-webster.com/soundc11/" + wavUrl.charAt(0) + "/" + wavUrl;
+        }
+
+        //return new APIResultSet(word, definitions, wavUrl);
+
+        return new APIResultSet(definitions, wavUrl);
     }
 
 

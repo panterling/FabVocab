@@ -9,15 +9,18 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import android.text.Html;
 
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
+
 /**
  * Created by Chris on 30/01/2017.
  */
 
-public class CollinsAPIParser implements IAPIParser {
+public class CollinsAPIParser extends APIParser {
 
     @Override
-    public ArrayList<String> parse(String response) {
-        ArrayList<String> definitions = new ArrayList<String>();
+    public APIResultSet parse(String response) {
+        ArrayList<WordDefinition> definitions = new ArrayList<>();
 
         try {
             // Decode html special characters
@@ -45,7 +48,7 @@ public class CollinsAPIParser implements IAPIParser {
                         break;
                     case XmlPullParser.END_TAG:
                         if(tagName.equals("def")) {
-                            definitions.add(nextDefintion);
+                            definitions.add(new WordDefinition(super.word, nextDefintion, ""));
                         }
                         break;
                 }
@@ -61,6 +64,6 @@ public class CollinsAPIParser implements IAPIParser {
 
 
 
-        return definitions;
+        return new APIResultSet(definitions, "");
     }
 }

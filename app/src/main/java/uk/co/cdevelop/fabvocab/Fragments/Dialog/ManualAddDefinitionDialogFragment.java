@@ -2,10 +2,7 @@ package uk.co.cdevelop.fabvocab.Fragments.Dialog;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
@@ -21,10 +18,9 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import uk.co.cdevelop.fabvocab.Fragments.AddWordsFragment;
-import uk.co.cdevelop.fabvocab.Fragments.AddWordsResultFragment;
-import uk.co.cdevelop.fabvocab.Helpers;
+import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
+import uk.co.cdevelop.fabvocab.Support.Helpers;
 import uk.co.cdevelop.fabvocab.R;
-import uk.co.cdevelop.fabvocab.SQL.FabVocabContract;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
 
 /**
@@ -37,7 +33,7 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
     private boolean isNewWord;
     private int wordId;
     private String wordForDefinition;
-    private ArrayList<String> existingDefinitions = new ArrayList<String>();
+    private ArrayList<DefinitionEntry> existingDefinitions = new ArrayList<>();
 
     public ManualAddDefinitionDialogFragment(AddWordsFragment addWordsFragment, String wordForDefinition) {
         this.addWordsFragment = addWordsFragment;
@@ -60,20 +56,15 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
 
 
         // Search for existing word
-        final SQLiteDatabase db = FabVocabSQLHelper.getInstance(getContext()).getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT " + FabVocabContract.WordEntry._ID + " fROM " + FabVocabContract.WordEntry.TABLE_NAME + " WHERE word = ?", new String[]{wordForDefinition});
-        //TODO: Use this function!
-        //wordId = getWord();
-        if(cursor.getCount() > 0) {
-            cursor.moveToNext();
-            wordId = cursor.getInt(cursor.getColumnIndex(FabVocabContract.WordEntry._ID));
+        wordId = FabVocabSQLHelper.getInstance(getContext()).getWordId(wordForDefinition);
+        if(wordId > 0) {
             isNewWord = false;
         }
 
         if(isNewWord) {
             view.findViewById(R.id.iv_newwordicon).setVisibility(View.VISIBLE);
         } else {
-            existingDefinitions = FabVocabSQLHelper.getDefinitions(wordId, db);
+            existingDefinitions = FabVocabSQLHelper.getInstance(getContext()).getAllDefinitions(wordId);
         }
 
 
@@ -91,7 +82,7 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
                         String toastStr = "";
 
                         if(isNewWord) {
-                            wordId = FabVocabSQLHelper.addWord(wordForDefinition, db);
+                            wordId = FabVocabSQLHelper.getInstance(getContext()).addWord(wordForDefinition);
                             toastStr += "Added New Word: " + wordForDefinition;
                             addWordsFragment.updateWordView();
                         } else {
@@ -99,10 +90,7 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
                         }
 
                         // Add Definition
-                        ContentValues values = new ContentValues();
-                        values.put(FabVocabContract.DefinitionEntry.COLUMN_WORD_ID, wordId);
-                        values.put(FabVocabContract.DefinitionEntry.COLUMN_NAME_DEFINITION, etDefinition.getText().toString());
-                        db.insert(FabVocabContract.DefinitionEntry.TABLE_NAME, null, values);
+                        FabVocabSQLHelper.getInstance(getContext()).addDefinition(wordId, etDefinition.getText().toString());
 
                         // Toast outcome
                         Toast.makeText(getContext(), toastStr, Toast.LENGTH_SHORT).show();
@@ -127,8 +115,8 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
             @Override
             public void afterTextChanged(Editable s) {
                 boolean newDefinition = true;
-                for (String def : existingDefinitions) {
-                    if(Helpers.isSimilar(etDefinition.getText().toString(), def)) {
+                for (DefinitionEntry definitionEntry : existingDefinitions) {
+                    if(Helpers.isSimilar(etDefinition.getText().toString(), definitionEntry.getDefinition())) {
                         newDefinition = false;
                         break;
                     }

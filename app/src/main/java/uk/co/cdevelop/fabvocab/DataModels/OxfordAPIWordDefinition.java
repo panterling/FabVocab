@@ -1,6 +1,5 @@
 package uk.co.cdevelop.fabvocab.DataModels;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -15,7 +14,7 @@ public class OxfordAPIWordDefinition {
         private ArrayList<String> definitions;
         private String categoryId;
         public WordDefinitionResultCategory(String categoryId) {
-            this.definitions = new ArrayList<String>();
+            this.definitions = new ArrayList<>();
             this.categoryId = categoryId;
         }
 
@@ -31,13 +30,13 @@ public class OxfordAPIWordDefinition {
         public ArrayList<String> getDefinitions() {
             return definitions;
         }
-    };
+    }
 
     public static class WordDefinitionResult {
         private ArrayList<WordDefinitionResultCategory> categories;
 
         public WordDefinitionResult(){
-            categories = new ArrayList<WordDefinitionResultCategory>();
+            categories = new ArrayList<>();
         }
 
         public void addCategory(WordDefinitionResultCategory category) {
@@ -55,7 +54,7 @@ public class OxfordAPIWordDefinition {
     private ArrayList<WordDefinitionResult> results;
 
     public OxfordAPIWordDefinition(){
-        results = new ArrayList<WordDefinitionResult>();
+        results = new ArrayList<>();
     }
 
     public void addResult(WordDefinitionResult wdr) {

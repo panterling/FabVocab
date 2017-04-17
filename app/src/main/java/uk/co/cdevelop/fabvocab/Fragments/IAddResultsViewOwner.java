@@ -5,7 +5,7 @@ import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 /**
  * Created by Chris on 13/02/2017.
  */
-public interface IAddResultsViewOwner {
+interface IAddResultsViewOwner {
 
-    public AddWordsResultsView getResultView();
+    AddWordsResultsView getResultView();
 }

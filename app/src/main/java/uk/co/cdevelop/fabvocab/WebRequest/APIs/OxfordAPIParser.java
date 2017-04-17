@@ -5,16 +5,19 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
+
 /**
  * Created by Chris on 22/01/2017.
  */
 
-public class OxfordAPIParser implements IAPIParser {
+public class OxfordAPIParser extends APIParser {
     @Override
-    public ArrayList<String> parse(String response) {
+    public APIResultSet parse(String response) {
 
 
-        ArrayList<String> resultDefinitions = new ArrayList<String>();
+        ArrayList<WordDefinition> resultDefinitions = new ArrayList<>();
 
         try {
             JSONObject resObj = new JSONObject(response);
@@ -47,7 +50,7 @@ public class OxfordAPIParser implements IAPIParser {
                             for (int n = 0; n < definitions.length(); n++) {
                                 String definition_row = definitions.getString(n);
 
-                                resultDefinitions.add(definition_row);
+                                resultDefinitions.add(new WordDefinition(super.word, definition_row, "undefined"));
                             }
                         }
                     }
@@ -59,10 +62,9 @@ public class OxfordAPIParser implements IAPIParser {
 
         } catch (Exception e) {
             e.printStackTrace();
-            resultDefinitions.add("ERROR IN PARSER!");
             //wd = null;
         }
 
-        return resultDefinitions;
+        return new APIResultSet(resultDefinitions, "");
     }
 }

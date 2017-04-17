@@ -1,12 +1,12 @@
 package uk.co.cdevelop.fabvocab.Activities;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.view.MotionEvent;
@@ -21,21 +21,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
+
 import uk.co.cdevelop.fabvocab.Fragments.AddWordsFragment;
+import uk.co.cdevelop.fabvocab.Fragments.Dialog.DatabaseSelectDialog;
 import uk.co.cdevelop.fabvocab.Fragments.HomePageFragment;
 import uk.co.cdevelop.fabvocab.Fragments.IFragmentWithCleanUp;
 import uk.co.cdevelop.fabvocab.Fragments.MyDictionaryFragment;
 import uk.co.cdevelop.fabvocab.R;
+import uk.co.cdevelop.fabvocab.SQL.FabVocabContract;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
 
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    FloatingActionButton btnFloatingAdd = null;
+    private FloatingActionButton btnFloatingAdd = null;
 
     // Allow clearing of focus when clicking outside of an EditText view! Elegant!
     @Override
@@ -93,33 +98,10 @@ public class MainActivity extends AppCompatActivity
 
 
 
-
-
-
-
-
         // START: SQL SETUP
-        FabVocabSQLHelper dbHelper = FabVocabSQLHelper.getInstance(this);
+        /*FabVocabSQLHelper dbHelper = FabVocabSQLHelper.getInstance(this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        /*
-        for(int i = 0; i < 26; i++) {
-            testWords.add(Character.toString((char) (i + 65)) + "1");
-            testWords.add(Character.toString((char) (i + 65)) + "2");
-            testWords.add(Character.toString((char) (i + 65)) + "3");
-        }
-
-        for (String word : testWords) {
-            ContentValues wordvalues = new ContentValues();
-            wordvalues.put(FabVocabContract.WordEntry.COLUMN_NAME_WORD, word);
-            long ret = db.insert(FabVocabContract.WordEntry.TABLE_NAME, null, wordvalues);
-
-
-            ContentValues values = new ContentValues();
-            values.put(FabVocabContract.DefinitionEntry.COLUMN_WORD_ID, ret);
-            values.put(FabVocabContract.DefinitionEntry.COLUMN_NAME_DEFINITION, "definition for: " + word);
-            ret = db.insert(FabVocabContract.DefinitionEntry.TABLE_NAME, null, values);
-        }*/
+        dbHelper.onUpgrade(dbHelper.getWritableDatabase(), 0, 0);*/
         // END: SQL SETUP
 
     }
@@ -164,6 +146,8 @@ public class MainActivity extends AppCompatActivity
             return true;
         } else if (id == R.id.action_purgedatabase) {
             FabVocabSQLHelper.getInstance(this).purge();
+        } else if (id == R.id.action_selectdatabase) {
+            (new DatabaseSelectDialog()).show(getSupportFragmentManager(), "databaseSelect");
         }
 
         return super.onOptionsItemSelected(item);
@@ -174,7 +158,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         return onNavigationItemSelected(item.getItemId());
     }
-    public boolean onNavigationItemSelected(int id) {
+    private boolean onNavigationItemSelected(int id) {
 
 
         IFragmentWithCleanUp newFragment = null;
@@ -227,7 +211,11 @@ public class MainActivity extends AppCompatActivity
                     .commit();
 
         } else {
-            //TODO: Error
+            //TODO: This should become a redundant scope once the menu is fully implemented.
+
+            // For debug purposes
+            Toast.makeText(this, "Attempt to load a menu item that hasn't yet been implemented...", Toast.LENGTH_LONG).show();
+
         }
 
         return true;
@@ -237,5 +225,10 @@ public class MainActivity extends AppCompatActivity
     public void onPause() {
         super.onPause();
         FabVocabSQLHelper.getInstance(this).close();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 }

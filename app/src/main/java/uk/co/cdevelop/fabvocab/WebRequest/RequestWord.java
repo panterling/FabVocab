@@ -1,7 +1,6 @@
 package uk.co.cdevelop.fabvocab.WebRequest;
 
 import android.content.Context;
-import android.view.View;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;

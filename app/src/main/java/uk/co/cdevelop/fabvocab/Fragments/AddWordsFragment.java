@@ -4,13 +4,8 @@ package uk.co.cdevelop.fabvocab.Fragments;
  * Created by Chris on 16/01/2017.
  */
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -18,7 +13,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
         import android.view.View;
@@ -28,28 +22,25 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import uk.co.cdevelop.fabvocab.Activities.MainActivity;
-import uk.co.cdevelop.fabvocab.Helpers;
-import uk.co.cdevelop.fabvocab.WebRequest.CollinsAPIRequest;
+import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
+import uk.co.cdevelop.fabvocab.SQL.Models.WordEntry;
+import uk.co.cdevelop.fabvocab.Support.Helpers;
 import uk.co.cdevelop.fabvocab.Fragments.Dialog.ManualAddDefinitionDialogFragment;
-import uk.co.cdevelop.fabvocab.SQL.FabVocabContract;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
 import uk.co.cdevelop.fabvocab.R;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
-import uk.co.cdevelop.fabvocab.WebRequest.MerriamWebsterAPIRequest;
-import uk.co.cdevelop.fabvocab.WebRequest.OxfordAPIRequest;
+import uk.co.cdevelop.fabvocab.Views.PronounciationPlayerView;
 import uk.co.cdevelop.fabvocab.WebRequest.RequestWord;
 
 public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, IAddResultsViewOwner {
@@ -57,14 +48,15 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
     private AddWordsResultsView addWordsResultsView;
     private int wordId;
 
-    ArrayList<String> allWords = new ArrayList<String>();
-    ArrayList<String> didYouMeanList = new ArrayList<String>();
+    private ArrayList<WordEntry> allWords = new ArrayList<>();
+    private ArrayList<String> didYouMeanList = new ArrayList<>();
 
-    Button btnWordExists;
-    EditText etWordInput;
-    Button btnAdd;
-    TextView tvDidYouMean;
-    ListView lvDidYouMean;
+    private Button btnWordExists;
+    private EditText etWordInput;
+    private Button btnAdd;
+    private TextView tvDidYouMean;
+    private ListView lvDidYouMean;
+    private PronounciationPlayerView ppvAudio;
 
 
     public AddWordsFragment() { }
@@ -80,12 +72,14 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("Add Words");
         ((MainActivity) getActivity()).hideFloatingAddButton();
 
-        final SQLiteDatabase db = FabVocabSQLHelper.getInstance(getContext()).getWritableDatabase();
-        allWords = FabVocabSQLHelper.getAllWords(db);
+        allWords = FabVocabSQLHelper.getInstance(getContext()).getAllWords();
 
         final Button btnWebSearch = (Button) view.findViewById(R.id.btnSearch);
         final Button btnManualAdd = (Button) view.findViewById(R.id.btn_manualaddword);
         final TextView tvWord = (TextView) view.findViewById(R.id.tv_word);
+        final RelativeLayout rlWord = (RelativeLayout) view.findViewById(R.id.rl_word);
+
+        ppvAudio = (PronounciationPlayerView) view.findViewById(R.id.ppv_addaudio);
 
         btnAdd = (Button) view.findViewById(R.id.btn_addword);
         btnWordExists = (Button) view.findViewById(R.id.iv_addwords_exists);
@@ -93,13 +87,14 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         tvDidYouMean = (TextView) view.findViewById(R.id.tv_didyoumean);
         lvDidYouMean = (ListView) view.findViewById(R.id.lv_didyoumean);
 
-        final ArrayAdapter<String> didYouMeanAdapter= new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, didYouMeanList);
+        final ArrayAdapter<String> didYouMeanAdapter= new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, didYouMeanList);
         lvDidYouMean.setAdapter(didYouMeanAdapter);
 
         wordId = -1;
 
         addWordsResultsView = (AddWordsResultsView) view.findViewById(R.id.adwv_addwords_resultsview);
-        addWordsResultsView.setParent(btnAdd);
+        addWordsResultsView.setAddButton(btnAdd); //TODO meaningless method name
+        addWordsResultsView.setParent(this);
 
         btnWordExists.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,7 +122,9 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                 addWordsResultsView.setVisibility(View.VISIBLE);
                 addWordsResultsView.animate().alpha(1.0f);
 
-                addWordsResultsView.setDefinitionsThatAlreadyExist(FabVocabSQLHelper.getDefinitions(wordId, db));
+                ppvAudio.reset();
+
+                addWordsResultsView.setDefinitionsThatAlreadyExist(FabVocabSQLHelper.getInstance(getContext()).getAllDefinitions(wordId));
 
                 String word = etWordInput.getText().toString();
                 etWordInput.clearFocus();
@@ -149,8 +146,8 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
 
                         // Prep UI
                         tvWord.setText(word);
-                        tvWord.setVisibility(View.VISIBLE);
-                        tvWord.animate().alpha(1.0f);
+                        rlWord.setVisibility(View.VISIBLE);
+                        rlWord.animate().alpha(1.0f);
 
                         (view.findViewById(R.id.tv_word)).setVisibility(View.VISIBLE);
                         //(view.findViewById(R.id.pager_searchresults)).setVisibility(View.VISIBLE); //todo: make refernce the new customview
@@ -178,23 +175,20 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
             @Override
             public void onClick(View v) {
 
-                String word = (String) tvWord.getText().toString().toLowerCase();
+                String word = tvWord.getText().toString().toLowerCase();
                 String str = "";
 
 
                 if(wordId == -1) {
-                    wordId = FabVocabSQLHelper.addWord(word, db);
+                    wordId = FabVocabSQLHelper.getInstance(getContext()).addWord(word, addWordsResultsView.getAudioUrl());
                     str = "Added New Word: " + word + "\n";
                     updateWordView();
                 }
 
-                for (String definition : addWordsResultsView.getDefinitionsToAdd()) {
-                    ContentValues values = new ContentValues();
-                    values.put(FabVocabContract.DefinitionEntry.COLUMN_WORD_ID, wordId);
-                    values.put(FabVocabContract.DefinitionEntry.COLUMN_NAME_DEFINITION, definition);
-
-                    db.insert(FabVocabContract.DefinitionEntry.TABLE_NAME, null, values);
+                for (DefinitionEntry definitionEntry : addWordsResultsView.getDefinitionsToAdd()) {
+                    FabVocabSQLHelper.getInstance(getContext()).addDefinition(wordId, definitionEntry.getDefinition());
                 }
+
                 str += "Added " + addWordsResultsView.getDefinitionsToAdd().size() + " definition(s)";
 
                 // Update GUI to prevent repeated addition of the same definition
@@ -233,10 +227,10 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                 //TODO: Either remove or fully implement the 'did you mean' list feature
                 didYouMeanList.clear();
 
-                tvWord.animate().alpha(0.0f).withEndAction(new Runnable() {
+                rlWord.animate().alpha(0.0f).withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        tvWord.setVisibility(View.GONE);
+                        rlWord.setVisibility(View.GONE);
                     }
                 });
 
@@ -302,9 +296,8 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
     }
 
     public void updateWordView() {
-        SQLiteDatabase db = FabVocabSQLHelper.getInstance(getContext()).getReadableDatabase();
         final String word = etWordInput.getText().toString().toLowerCase();
-        wordId = FabVocabSQLHelper.getWord(word, db);
+        wordId = FabVocabSQLHelper.getInstance(getContext()).getWordId(word);
 
         if(wordId != -1) {
             btnWordExists.setVisibility(View.VISIBLE);
@@ -315,8 +308,8 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
             etWordInput.setTextAppearance(R.style.StandardText);
             btnAdd.setText("Add Word & Definitions");
 
-            for(final String wordToCheck : allWords) {
-                if(Helpers.isSimilar(wordToCheck, word, 0.3)) {
+            for(final WordEntry wordToCheck : allWords) {
+                if(Helpers.isSimilar(wordToCheck.getWord(), word, 0.3)) {
                     tvDidYouMean.setVisibility(View.VISIBLE);
                     tvDidYouMean.animate().alpha(1.0f).withEndAction(new Runnable() {
                         @Override
@@ -325,15 +318,15 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                         }
                     });
 
-                    tvDidYouMean.setText("Did you mean: " + word + "?");
+                    tvDidYouMean.setText("Did you mean: " + wordToCheck.getWord() + "?");
 
-                    didYouMeanList.add(word);
-                    didYouMeanList.add(word);
+                    didYouMeanList.add(wordToCheck.getWord());
+                    didYouMeanList.add(wordToCheck.getWord());
 
                     tvDidYouMean.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            etWordInput.setText(word);
+                            etWordInput.setText(wordToCheck.getWord());
                         }
                     });
                 }
@@ -365,8 +358,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         FragmentManager fm = ((FragmentActivity) getContext()).getSupportFragmentManager();
 
         // Refresh result Fragments
-        SQLiteDatabase db = FabVocabSQLHelper.getInstance(getContext()).getReadableDatabase();
-        addWordsResultsView.setDefinitionsThatAlreadyExist(FabVocabSQLHelper.getDefinitions(wordId, db));
+        addWordsResultsView.setDefinitionsThatAlreadyExist(FabVocabSQLHelper.getInstance(getContext()).getAllDefinitions(wordId));
         addWordsResultsView.refreshResultsFragments();
 
     }
@@ -380,5 +372,9 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
     public void onDestroy() {
         super.onDestroy();
         //addWordsResultsView.cleanUp(); // Already removed by MAin Activity
+    }
+
+    public void giveAudioUrl(String audioUrl) {
+        ppvAudio.giveSource(audioUrl);
     }
 }

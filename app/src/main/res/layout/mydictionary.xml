@@ -62,7 +62,7 @@
         android:layout_marginTop="600px"
         android:layout_marginLeft="730px"
         android:padding="0dp"
-        android:background="@drawable/side_nav_bar"
+        android:background="@drawable/border"
         android:textStyle="bold"
         android:textSize="10sp"
         android:visibility="gone"

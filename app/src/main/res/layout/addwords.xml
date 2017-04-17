@@ -90,16 +90,33 @@
 
         </LinearLayout>
 
-        <TextView
-            android:text="[WORD HERE]"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:id="@+id/tv_word"
-            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-            android:layout_height="40dp"
-            android:gravity="center_vertical|center_horizontal"
-            android:textStyle="normal|bold|italic"
-            android:background="@drawable/border"
-            android:visibility="gone" />
+            android:layout_height="wrap_content"
+            android:layout_weight="0.70"
+            android:id="@+id/rl_word"
+            android:visibility="gone">
+
+            <TextView
+                android:text="[WORD HERE]"
+                android:layout_width="match_parent"
+                android:id="@+id/tv_word"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                android:layout_height="40dp"
+                android:gravity="center_vertical|center_horizontal"
+                android:textStyle="normal|bold|italic"
+                android:background="@drawable/border"
+                android:visibility="visible" />
+
+            <uk.co.cdevelop.fabvocab.Views.PronounciationPlayerView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_marginRight="3dp"
+                android:layout_marginTop="2dp"
+                android:id="@+id/ppv_addaudio" />
+        </RelativeLayout>
 
         <uk.co.cdevelop.fabvocab.Views.AddWordsResultsView
             android:layout_width="wrap_content"

@@ -16,12 +16,20 @@
         android:layout_weight="0.50"
         android:visibility="gone" />
 
+    <TextView
+        android:text="x."
+        android:layout_width="15dp"
+        android:maxWidth="15dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_definition_counter"
+        android:layout_marginLeft="8dp" />
+
     <uk.co.cdevelop.fabvocab.Views.EditTextWithImeEvents
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/et_definition"
         android:inputType="text"
-        android:layout_weight="1.04"
+        android:layout_weight="0.99"
         android:maxWidth="160dp"
         android:imeOptions="actionDone"
         android:scrollHorizontally="false"
@@ -31,10 +39,9 @@
         android:layout_marginBottom="10dp" />
 
     <Button
-        android:layout_height="30dp"
         android:id="@+id/btn_delete"
-        android:layout_width="30dp"
         android:background="@drawable/icon_delete"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp" />
+        android:layout_width="15dp"
+        android:layout_height="15dp" />
+
 </LinearLayout>

@@ -1,7 +1,7 @@
 package uk.co.cdevelop.fabvocab.WebRequest;
 
 import uk.co.cdevelop.fabvocab.WebRequest.APIs.CollinsAPIParser;
-import uk.co.cdevelop.fabvocab.DataModels.Constants;
+import uk.co.cdevelop.fabvocab.Support.Constants;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 
 /**

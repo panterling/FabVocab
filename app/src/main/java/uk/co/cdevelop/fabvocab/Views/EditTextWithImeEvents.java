@@ -11,7 +11,7 @@ import android.widget.EditText;
 
 public class EditTextWithImeEvents extends EditText {
 
-    EditTextWithImeEventsBackListener mOnImeBackListener = null;
+    private EditTextWithImeEventsBackListener mOnImeBackListener = null;
     public EditTextWithImeEvents(Context context) {
         super(context);
     }

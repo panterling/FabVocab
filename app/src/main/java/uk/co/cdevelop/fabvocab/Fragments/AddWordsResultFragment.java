@@ -1,5 +1,6 @@
 package uk.co.cdevelop.fabvocab.Fragments;
 
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -14,15 +15,13 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-import uk.co.cdevelop.fabvocab.DataModels.OxfordAPIWordDefinition;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
 import uk.co.cdevelop.fabvocab.R;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
+import uk.co.cdevelop.fabvocab.Views.GroupedListView;
 
 /**
  * Created by Chris on 21/01/2017.
@@ -44,24 +43,28 @@ public class AddWordsResultFragment extends Fragment implements IFragmentWithCle
     private State state;
 
     private String APITitle = "undefined";
-    private ArrayList<String> definitions;
+    private ArrayList<WordDefinition> definitions;
     private String results;
 
     public AddWordsResultFragment() {
         super();
         this.APITitle = "undefined";
-        this.definitions = new ArrayList<String>();
+        this.definitions = new ArrayList<>();
         this.state = State.BLANK;
     }
     public AddWordsResultFragment(String title) {
         this.APITitle = title;
-        this.definitions = new ArrayList<String>();
+        this.definitions = new ArrayList<>();
         this.state = State.BLANK;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.definitionresult, container, false);
+        View view = inflater.inflate(R.layout.addwords_api_definitionresult, container, false);
+
+
+        final GroupedListView glv = (GroupedListView) view.findViewById(R.id.glv_addwords_result);
+
 
         //TODO: Move to XML
         ProgressBar prgBar = (ProgressBar) view.findViewById(R.id.prgSearch);
@@ -100,18 +103,30 @@ public class AddWordsResultFragment extends Fragment implements IFragmentWithCle
                     }
                 }
 
+                // TODO: May cause null pointer - how to handler this?
                 final AddWordsResultsView parent = parentFragment.getResultView();
-
 
 
                 LinearLayout resultsLayout = (LinearLayout) view.findViewById(R.id.resultslayout);
                 LayoutParams definitionLayoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                 definitionLayoutParams.setMargins(25, 0, 0, 0);
 
-                for (final String definition : definitions) {
-                    CheckBox newCheck = new CheckBox(this.getContext());
+                // Tend addition of a 'header' row to see how it could look.
+                TextView tvHeaderNouns = new TextView(getContext());
+                tvHeaderNouns.setText("noun");
+                tvHeaderNouns.setTypeface(null, Typeface.BOLD_ITALIC);
+                resultsLayout.addView(tvHeaderNouns);
 
-                    newCheck.setText(definition);
+                // New
+                glv.giveItems(definitions, parent);
+
+
+                // Old
+                for (final WordDefinition wd : definitions) {
+                    CheckBox newCheck = new CheckBox(this.getContext());
+                    final String definition = wd.getDefinition();
+
+                    newCheck.setText(wd.getWordType() + ": " + definition);
                     if(parent.definitionExists(definition)) {
                         newCheck.setEnabled(false);
                         newCheck.setChecked(true);
@@ -157,7 +172,7 @@ public class AddWordsResultFragment extends Fragment implements IFragmentWithCle
         this.state = State.PROGRESS;
     }
 
-    public void setResults(ArrayList<String> results) {
+    public void setResults(ArrayList<WordDefinition> results) {
         this.state = State.SHOWRESULT;
         this.definitions = results;
     }

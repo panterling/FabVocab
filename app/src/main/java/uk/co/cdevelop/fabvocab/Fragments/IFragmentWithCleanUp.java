@@ -5,5 +5,5 @@ package uk.co.cdevelop.fabvocab.Fragments;
  */
 
 public interface IFragmentWithCleanUp {
-    public void cleanUp();
+    void cleanUp();
 }

@@ -17,17 +17,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import uk.co.cdevelop.fabvocab.WebRequest.APIs.IAPIParser;
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.WebRequest.APIs.APIParser;
 
-import uk.co.cdevelop.fabvocab.DataModels.Constants.APIType;
+import uk.co.cdevelop.fabvocab.Support.Constants.APIType;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 
-public class CustomStringRequest extends StringRequest {
+class CustomStringRequest extends StringRequest {
 
 
-    protected HashMap<String, String> headers;
+    HashMap<String, String> headers;
 
-    public CustomStringRequest(final APIType owner, String url, final AddWordsResultsView destination, final IAPIParser parser) {
+    CustomStringRequest(final APIType owner, String url, final AddWordsResultsView destination, final APIParser parser) {
         super(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -43,12 +44,12 @@ public class CustomStringRequest extends StringRequest {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        ArrayList<String> errResponse = new ArrayList<String>();
+                        ArrayList<String> errResponse = new ArrayList<>();
                         Log.e("DictionaryAPI", "ERROR IN RESPONSE");
                         Log.e("DictionaryAPI", "Network Code: " + (error.networkResponse != null ? error.networkResponse.statusCode : "Null Network Response"));
 
                         if(destination != null) {
-                            destination.giveResults(owner, errResponse);
+                            destination.giveResults(owner, new APIResultSet());
                         } else {
                             Log.e("CustomStringRequest", "The destination object for this CustomStringRequest is null.");
                         }
@@ -56,7 +57,7 @@ public class CustomStringRequest extends StringRequest {
                 }
         );
 
-        this.headers = new HashMap<String, String>();
+        this.headers = new HashMap<>();
     }
 
     @Override

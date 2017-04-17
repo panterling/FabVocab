@@ -19,7 +19,6 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -27,16 +26,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import uk.co.cdevelop.fabvocab.Activities.MainActivity;
-import uk.co.cdevelop.fabvocab.DataModels.MyDictionaryDefinition;
-import uk.co.cdevelop.fabvocab.ListAdapters.MyDictionaryListAdaptor;
+import uk.co.cdevelop.fabvocab.DataModels.MyDictionaryRow;
+import uk.co.cdevelop.fabvocab.Adapters.MyDictionaryListAdaptor;
 import uk.co.cdevelop.fabvocab.R;
+import uk.co.cdevelop.fabvocab.Support.MyDictionaryFilter;
+import uk.co.cdevelop.fabvocab.Support.MyDictionaryFilterFactory;
 
 public class MyDictionaryFragment extends Fragment implements IFragmentWithCleanUp {
 
-    TextView currentlySelected;
+    private TextView currentlySelected;
+    private ArrayList<MyDictionaryFilter> myDictionaryFilters;
 
     @Override
     public View onCreateView(LayoutInflater inflator, ViewGroup container, Bundle savedInstanceState) {
@@ -61,25 +62,19 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
         final Spinner spFilters = (Spinner) view.findViewById(R.id.sp_mydictionary_filters);
 
 
-        final MyDictionaryListAdaptor listAdapter = new MyDictionaryListAdaptor(getContext(), new ArrayList<MyDictionaryDefinition>());
+        final MyDictionaryListAdaptor listAdapter = new MyDictionaryListAdaptor(getContext(), new ArrayList<MyDictionaryRow>());
         lvDictionary.setAdapter(listAdapter);
 
-        final ArrayAdapter<String> filtersAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, new ArrayList<String>(Arrays.asList("Show All", "New", "Etc")));
+        final ArrayAdapter<MyDictionaryFilter> filtersAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, getMyDictionaryFilters());
         spFilters.setAdapter(filtersAdapter);
 
         spFilters.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // TODO: do not switch on strings!!!!!!! Bad chris!
-                String selected = filtersAdapter.getItem(position);
-                switch(selected) {
-                    case "Show All":
-                        listAdapter.showAll();
-                        break;
-                    case "New":
-                        listAdapter.showRecentlyAdded();
-                        break;
-                }
+                MyDictionaryFilter selectedFilter = filtersAdapter.getItem(position);
+
+                selectedFilter.apply(listAdapter);
             }
 
             @Override
@@ -91,13 +86,16 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
 
         lvDictionary.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if(totalItemCount > 0 && visibleItemCount > 0) {
-                    MyDictionaryDefinition def = (MyDictionaryDefinition) listAdapter.getItem(firstVisibleItem);
-                    tvCurrentFilter.setText(Character.toString(def.getWord().charAt(0)));
+                if (totalItemCount > 0 && visibleItemCount > 0) {
+                    MyDictionaryRow def = listAdapter.getItem(firstVisibleItem);
+                    if (def != null) {
+                        tvCurrentFilter.setText(Character.toString(def.getWord().charAt(0)));
+                    }
                 }
             }
         });
@@ -128,7 +126,7 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
 
                             int topOffset = 200; //px
                             int offset = 0;
-                            if(currentlySelected.getText().charAt(0) != '#') {
+                            if (currentlySelected.getText().charAt(0) != '#') {
                                 int vv = (int) currentlySelected.getText().charAt(0);
                                 vv -= 65; // offset down to ASCII 0
                                 vv *= 50; // * item height
@@ -143,8 +141,8 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
                             tvScollingLetterOverlay.setLayoutParams(params);
 
 
-                            int newPosition = listAdapter.getPositionForChar(currentlySelected.getText().charAt(0));
-                            if(newPosition >= 0) {
+                            int newPosition = listAdapter.getPositionForChar(currentlySelected.getText().toString().toLowerCase().charAt(0));
+                            if (newPosition >= 0) {
                                 lvDictionary.smoothScrollToPositionFromTop(newPosition, 0);
                             }
                         }
@@ -184,5 +182,15 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
     @Override
     public void cleanUp() {
 
+    }
+
+    public ArrayList<MyDictionaryFilter> getMyDictionaryFilters() {
+        ArrayList<MyDictionaryFilter> filters = new ArrayList<>();
+
+        // TODO: Why not make unique methods for each filter rather than reference consts within the factory?
+        filters.add(MyDictionaryFilterFactory.makeFilter(MyDictionaryFilterFactory.Type.SHOWALL));
+        filters.add(MyDictionaryFilterFactory.makeFilter(MyDictionaryFilterFactory.Type.RECENT));
+
+        return filters;
     }
 }

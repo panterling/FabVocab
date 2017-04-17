@@ -1,12 +1,8 @@
 package uk.co.cdevelop.fabvocab.Fragments;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +18,9 @@ import android.widget.Toast;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-import uk.co.cdevelop.fabvocab.Activities.QuickAddActivity;
 import uk.co.cdevelop.fabvocab.R;
-import uk.co.cdevelop.fabvocab.SQL.FabVocabContract;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
+import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 import uk.co.cdevelop.fabvocab.WebRequest.RequestWord;
 
@@ -51,14 +46,12 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
     public void onViewCreated(final View view, Bundle savedInstanceState) {
 
         // Check if the word already exists in My Dictionary
-        final SQLiteDatabase db = FabVocabSQLHelper.getInstance(getContext()).getReadableDatabase();
-        int wordId = FabVocabSQLHelper.getWord(word.toString(), db);
+        int wordId = FabVocabSQLHelper.getInstance(getContext()).getWordId(word.toLowerCase());
         final boolean isNewWord = (wordId == -1);
 
         boolean isInAddLater = false;
         if(isNewWord) {
-            Cursor cursor = db.rawQuery("SELECT " + FabVocabContract.AddWordLater.COLUMN_NAME_WORD + " FROM " + FabVocabContract.AddWordLater.TABLE_NAME + " WHERE " + FabVocabContract.AddWordLater.COLUMN_NAME_WORD + " = ?", new String[]{word.toLowerCase()});
-            if(cursor.getCount() > 0) {
+            if(FabVocabSQLHelper.getInstance(getContext()).existsInAddWordsLater(word.toLowerCase())) {
                 isInAddLater = true;
             }
         }
@@ -94,9 +87,9 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
             llWordReview.setVisibility(View.VISIBLE);
 
 
-            ArrayList<String> definitionList = FabVocabSQLHelper.getDefinitions(wordId, db);
+            ArrayList<DefinitionEntry> definitionList = FabVocabSQLHelper.getInstance(getContext()).getAllDefinitions(wordId);
 
-            ArrayAdapter<String> definitions = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, definitionList);
+            ArrayAdapter<DefinitionEntry> definitions = new ArrayAdapter<>(getContext(), android.R.layout.simple_list_item_1, definitionList);
             lvDefinitions.setAdapter(definitions);
             btnDone.setVisibility(View.VISIBLE);
         }
@@ -104,14 +97,10 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
         btnAddLater.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ContentValues value = new ContentValues();
-                value.put(FabVocabContract.AddWordLater.COLUMN_NAME_WORD, word.toLowerCase());
-
-                Cursor cursor = db.rawQuery("SELECT 1 FROM " + FabVocabContract.AddWordLater.TABLE_NAME + " WHERE " + FabVocabContract.AddWordLater.COLUMN_NAME_WORD + " = ?", new String[]{word.toLowerCase()});
-                if(cursor.getCount() > 0) {
+                if(FabVocabSQLHelper.getInstance(getContext()).existsInAddWordsLater(word.toLowerCase())) {
                     Toast.makeText(getContext(), "Already in your 'Add Later' List!", Toast.LENGTH_SHORT).show();
                 } else {
-                    db.insert(FabVocabContract.AddWordLater.TABLE_NAME, null, value);
+                    FabVocabSQLHelper.getInstance(getContext()).addWordForLater(word.toLowerCase());
                     Toast.makeText(getContext(), "Added to 'Add Later' List!", Toast.LENGTH_SHORT).show();
                 }
                 returnToCallingActivity();
@@ -126,7 +115,7 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
 
                 btnDone.setEnabled(false);
 
-                addWordsResultsView.setParent(btnDone);
+                addWordsResultsView.setAddButton(btnDone);
 
                 try {
                     requester = new RequestWord(getContext());
@@ -149,29 +138,11 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
                 // Go back to the calling app e.g. Chrome/PDF viewer etc.
 
                 if(isNewWord) {
-                    // Insert
-                    ContentValues values = new ContentValues();
-
-
-                    // Remove from 'Add Later' if there
-                    SQLiteDatabase localDb = db;
-                    if (!db.isOpen()) {
-                        localDb = FabVocabSQLHelper.getInstance(getContext()).getWritableDatabase();
-                    }
-                    localDb.delete(FabVocabContract.AddWordLater.TABLE_NAME, FabVocabContract.AddWordLater.COLUMN_NAME_WORD + " = ?", new String[]{word.toLowerCase()});
-
-                    // Add Word
-                    values.put("word", word.toLowerCase());
-                    values.put("added", FabVocabSQLHelper.getSQLTimestamp());
-                    int word_id = (int) localDb.insert("words", null, values);
+                    int wordId = FabVocabSQLHelper.getInstance(getContext()).addWord(word.toLowerCase());
 
                     // Add Definitions
-                    for (String definition : addWordsResultsView.getDefinitionsToAdd()) {
-                        values = new ContentValues();
-                        values.put(FabVocabContract.DefinitionEntry.COLUMN_WORD_ID, word_id);
-                        values.put(FabVocabContract.DefinitionEntry.COLUMN_NAME_DEFINITION, definition);
-
-                        localDb.insert(FabVocabContract.DefinitionEntry.TABLE_NAME, null, values);
+                    for (DefinitionEntry definitionEntry : addWordsResultsView.getDefinitionsToAdd()) {
+                        FabVocabSQLHelper.getInstance(getContext()).addDefinition(wordId, definitionEntry.getDefinition());
                     }
 
                     Toast.makeText(getContext(), "Added word to My Dictionary", Toast.LENGTH_SHORT).show();
@@ -201,7 +172,7 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
 
     }
 
-    public void returnToCallingActivity() {
+    private void returnToCallingActivity() {
         //((Activity) getContext()).setResult(Activity.RESULT_OK, null);
         Intent intent = ((Activity) getContext()).getIntent();
         intent.putExtra(Intent.EXTRA_PROCESS_TEXT, "testing");

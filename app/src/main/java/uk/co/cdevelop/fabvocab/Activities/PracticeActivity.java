@@ -1,16 +1,15 @@
 package uk.co.cdevelop.fabvocab.Activities;
 
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import uk.co.cdevelop.fabvocab.Fragments.Practice.WordPracticeFragment;
+import uk.co.cdevelop.fabvocab.Fragments.PracticeActivity.WordPracticeFragment;
 import uk.co.cdevelop.fabvocab.R;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
+import uk.co.cdevelop.fabvocab.SQL.Models.WordEntry;
 
 /**
  * Created by Chris on 04/02/2017.
@@ -41,11 +40,9 @@ public class PracticeActivity extends AppCompatActivity {
                 tvWord.setTextSize(40);
                 tvWord.setText(mode);
 
-                SQLiteDatabase db = FabVocabSQLHelper.getInstance(this).getReadableDatabase();
-                Cursor cursor = db.rawQuery("SELECT word FROM words WHERE _id = ?", new String[]{Integer.toString(word_id)});
-                if(cursor.getCount() > 0) {
-                    cursor.moveToNext();
-                    tvWord.setText("Word to practice: " + cursor.getString(cursor.getColumnIndex("word")));
+                WordEntry wordFromDb = FabVocabSQLHelper.getInstance(this).getWord(word_id);
+                if(wordFromDb != null) {
+                    tvWord.setText("Word to practice: " + wordFromDb.getWord());
                 } else {
                     tvWord.setText("Invalid word_id - not found in DB");
                 }
