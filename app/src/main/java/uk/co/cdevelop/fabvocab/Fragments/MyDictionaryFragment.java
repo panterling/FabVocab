@@ -143,7 +143,8 @@ public class MyDictionaryFragment extends Fragment implements IFragmentWithClean
 
                             int newPosition = listAdapter.getPositionForChar(currentlySelected.getText().toString().toLowerCase().charAt(0));
                             if (newPosition >= 0) {
-                                lvDictionary.smoothScrollToPositionFromTop(newPosition, 0);
+                                lvDictionary.smoothScrollToPosition(newPosition);
+                                //lvDictionary.smoothScrollToPositionFromTop(newPosition, 0);
                             }
                         }
                     }

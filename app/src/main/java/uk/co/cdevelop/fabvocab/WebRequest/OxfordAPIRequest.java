@@ -12,6 +12,7 @@ class OxfordAPIRequest extends CustomStringRequest {
     public OxfordAPIRequest(String word, AddWordsResultsView destination) {
         super(Constants.APIType.OXFORD, Constants.URL_OXFORD.replace(Constants.URL_WORDTOKEN, word), destination, new OxfordAPIParser());
 
+        this.setTag("apiRequest");
         String url = Constants.URL_OXFORD.replace(Constants.URL_WORDTOKEN, word);
         super.headers.put("Accept", "application/json");
         super.headers.put("app_id", Constants.APIID_OXFORD);

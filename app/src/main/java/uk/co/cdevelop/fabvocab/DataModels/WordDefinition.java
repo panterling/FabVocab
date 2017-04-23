@@ -1,10 +1,15 @@
 package uk.co.cdevelop.fabvocab.DataModels;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
 /**
  * Created by Chris on 05/03/2017.
  */
 
-public class WordDefinition {
+public class WordDefinition implements Serializable {
     String word = null;
     String wordType = null;
     String definition = null;
@@ -18,6 +23,12 @@ public class WordDefinition {
     public WordDefinition(String word, String definition) {
         this.word = word;
         this.definition = definition;
+    }
+
+    protected WordDefinition(Parcel in) {
+        word = in.readString();
+        wordType = in.readString();
+        definition = in.readString();
     }
 
     public String getWord() {

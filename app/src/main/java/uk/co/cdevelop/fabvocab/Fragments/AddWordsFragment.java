@@ -29,12 +29,16 @@ import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import uk.co.cdevelop.fabvocab.Activities.MainActivity;
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
 import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
 import uk.co.cdevelop.fabvocab.SQL.Models.WordEntry;
+import uk.co.cdevelop.fabvocab.Support.Constants;
 import uk.co.cdevelop.fabvocab.Support.Helpers;
 import uk.co.cdevelop.fabvocab.Fragments.Dialog.ManualAddDefinitionDialogFragment;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
@@ -47,6 +51,9 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
 
     private AddWordsResultsView addWordsResultsView;
     private int wordId;
+    private boolean showingResult = false;
+
+    private RequestWord requester;
 
     private ArrayList<WordEntry> allWords = new ArrayList<>();
     private ArrayList<String> didYouMeanList = new ArrayList<>();
@@ -96,6 +103,40 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         addWordsResultsView.setAddButton(btnAdd); //TODO meaningless method name
         addWordsResultsView.setParent(this);
 
+        // Likely an orientation change - Restore results and visibility if required
+        if (savedInstanceState != null) {
+            if(savedInstanceState.getBoolean("showingResults")) {
+                showingResult = true;
+                btnAdd.setVisibility(View.VISIBLE);
+                addWordsResultsView.setVisibility(View.VISIBLE);
+                addWordsResultsView.setAlpha(1.0f);
+                rlWord.setVisibility(View.VISIBLE);
+                rlWord.setAlpha(1.0f);
+
+                HashMap<String, ArrayList<WordDefinition>> apiResults = (HashMap<String, ArrayList<WordDefinition>>) savedInstanceState.get("apiResults");
+
+                ArrayList<WordDefinition> oxfordResults = apiResults.get("oxford");
+                ArrayList<WordDefinition> merriamResults = apiResults.get("merriam");
+                ArrayList<WordDefinition> collinsResults = apiResults.get("collins");
+
+                if(oxfordResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.OXFORD, new APIResultSet(oxfordResults, ""));
+                }
+
+                if(merriamResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.MW, new APIResultSet(merriamResults, ""));
+                }
+
+                if(collinsResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.COLLINS, new APIResultSet(collinsResults, ""));
+                }
+
+
+                addWordsResultsView.setDefinitionsToAdd((ArrayList<DefinitionEntry>) savedInstanceState.get("selectedItems"));
+
+            }
+        }
+
         btnWordExists.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,6 +160,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
             public void onClick(View v) {
                 btnAdd.setVisibility(View.VISIBLE);
 
+                showingResult = true;
                 addWordsResultsView.setVisibility(View.VISIBLE);
                 addWordsResultsView.animate().alpha(1.0f);
 
@@ -141,7 +183,10 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                 } else {
                     try {
 
-                        RequestWord requester = new RequestWord(getContext());
+                        if(requester != null) {
+                            requester.cancelAll();
+                        }
+                        requester = new RequestWord(getContext());
                         requester.requestAll(word, addWordsResultsView);
 
                         // Prep UI
@@ -210,6 +255,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                     ManualAddDefinitionDialogFragment eddf = new ManualAddDefinitionDialogFragment(AddWordsFragment.this, word);
                     eddf.show(((FragmentActivity) getContext()).getSupportFragmentManager(), "editDefinition");
 
+
                 }
             }
         });
@@ -227,7 +273,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                 //TODO: Either remove or fully implement the 'did you mean' list feature
                 didYouMeanList.clear();
 
-                rlWord.animate().alpha(0.0f).withEndAction(new Runnable() {
+                /*rlWord.animate().alpha(0.0f).withEndAction(new Runnable() {
                     @Override
                     public void run() {
                         rlWord.setVisibility(View.GONE);
@@ -241,7 +287,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
                     }
                 });
 
-                btnAdd.setVisibility(View.GONE);
+                btnAdd.setVisibility(View.GONE);*/
 
                 tvDidYouMean.animate().alpha(0.0f).withEndAction(new Runnable() {
                     @Override
@@ -348,7 +394,10 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
     @Override
     public void onPause() {
         super.onPause();
-        addWordsResultsView.detachChildren();
+        if(requester != null) {
+            requester.cancelAll();
+        }
+        addWordsResultsView.cleanUp();
     }
 
     @Override
@@ -367,14 +416,29 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         return addWordsResultsView;
     }
 
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        //addWordsResultsView.cleanUp(); // Already removed by MAin Activity
-    }
-
     public void giveAudioUrl(String audioUrl) {
         ppvAudio.giveSource(audioUrl);
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putBoolean("showingResults", showingResult);
+
+        if(showingResult) {
+            // Pass results to new AddWordsResultView
+            outState.putSerializable("apiResults", addWordsResultsView.getResults());
+
+            // Reselect any 'selected' options
+            outState.putSerializable("selectedItems", addWordsResultsView.getDefinitionsToAdd());
+        }
+    }
+
+    /*@Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // UNUSED
+    }*/
 }

@@ -1,20 +1,25 @@
 package uk.co.cdevelop.fabvocab.Views;
 
 import android.content.Context;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import uk.co.cdevelop.fabvocab.Support.SaveState;
 import uk.co.cdevelop.fabvocab.Adapters.AddWordsResultFragmentPagerAdapter;
 import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
 import uk.co.cdevelop.fabvocab.Fragments.AddWordsFragment;
 import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
 import uk.co.cdevelop.fabvocab.Support.Constants;
@@ -27,6 +32,17 @@ import uk.co.cdevelop.fabvocab.R;
 
 public class AddWordsResultsView extends LinearLayout {
 
+    public enum State {
+        IDLE,
+        RESULTS_PENDING,
+        SHOWING_RESULTS
+    }
+
+
+    public void setDefinitionsToAdd(ArrayList<DefinitionEntry> definitionsToAdd) {
+        this.definitionsToAdd = definitionsToAdd;
+    }
+
     private AddWordsFragment parent;
     private AddWordsResultFragmentPagerAdapter adapter;
     private ArrayList<DefinitionEntry> definitionsToAdd;
@@ -34,6 +50,9 @@ public class AddWordsResultsView extends LinearLayout {
     private Button btnDone;
     private AddWordsResultFragment[] fragments;
     private String audioUrl = "";
+
+    private State resultState = State.IDLE;
+    private boolean resultsReceived[];
 
     public AddWordsResultsView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -53,6 +72,28 @@ public class AddWordsResultsView extends LinearLayout {
         ViewPager pager = (ViewPager) container.findViewById(R.id.pager_searchresults);
         pager.setAdapter(adapter);
 
+        // Reset ResultsReceived flag array
+        resultsReceived = new boolean[fragments.length];
+        for(int i = 0; i < resultsReceived.length; i++) {
+            resultsReceived[i] = false;
+        }
+    }
+
+
+    public void setResultReceived(int owner) {
+        resultsReceived[owner] = true;
+
+        for (boolean state : resultsReceived) {
+            if(state == false) {
+                return;
+            }
+        }
+
+        resultState = State.SHOWING_RESULTS;
+    }
+
+    public State getState() {
+        return resultState;
     }
 
     public void setParent(AddWordsFragment parent) {
@@ -67,6 +108,7 @@ public class AddWordsResultsView extends LinearLayout {
     public void giveResults(Constants.APIType owner, APIResultSet response) {
         if(adapter != null) {
             adapter.giveResult(owner, response.getDefinitions());
+            setResultReceived(owner.ordinal());
 
             // Audio URL
             if(isValidAudioUrl(response.getAudioUrl())) {
@@ -77,6 +119,7 @@ public class AddWordsResultsView extends LinearLayout {
                         parent.giveAudioUrl(audioUrl);
                     }
                 }
+
             }
         } else {
             Log.e("Err", "Attempt to pass a CustomStringRequest response to an uninitialised adapter.");
@@ -101,6 +144,14 @@ public class AddWordsResultsView extends LinearLayout {
     }
 
     public void setAllInProgress() {
+        resultState = State.RESULTS_PENDING;
+
+        // Reset ResultsReceived flag array
+        resultsReceived = new boolean[fragments.length];
+        for(int i = 0; i < resultsReceived.length; i++) {
+            resultsReceived[i] = false;
+        }
+
         adapter.allInProgress();
     }
 
@@ -111,6 +162,10 @@ public class AddWordsResultsView extends LinearLayout {
     public void clearAll() {
         definitionsToAdd.clear();
         audioUrl = "";
+
+        for(int i = 0; i < resultsReceived.length; i++) {
+            resultsReceived[i] = false;
+        }
     }
 
     public void cleanUp() {
@@ -147,5 +202,45 @@ public class AddWordsResultsView extends LinearLayout {
     public boolean isValidAudioUrl(String url) {
         //TODO: implement a http request to test if an audio URL (a) exists and (b) isn't above xx mb in size....
         return true;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable savedInstanceState) {
+        SaveState state = (SaveState) savedInstanceState;
+        super.onRestoreInstanceState(state.getSuperState());
+
+        if (savedInstanceState != null) // implicit null check
+        {
+            Bundle bundle = state.getBundle();
+            if(bundle.getBoolean("showResults")) {
+                setVisibility(View.VISIBLE);
+                setAlpha(1.0f);
+            }
+        }
+
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+
+        Bundle bundle = new Bundle();
+
+        // TODO: Determine based on current state
+        bundle.putBoolean("showResults", true);
+
+        SaveState state = new SaveState(superState, bundle);
+
+        return state;
+    }
+
+    public HashMap<String, ArrayList<WordDefinition>> getResults() {
+        HashMap<String, ArrayList<WordDefinition>> results = new HashMap<>();
+
+        results.put("oxford", fragments[0].getResults());
+        results.put("merriam", fragments[1].getResults());
+        results.put("collins", fragments[2].getResults());
+
+        return results;
     }
 }

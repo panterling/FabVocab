@@ -4,6 +4,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,6 +65,7 @@ public class AddWordsResultFragment extends Fragment implements IFragmentWithCle
 
 
         final GroupedListView glv = (GroupedListView) view.findViewById(R.id.glv_addwords_result);
+
 
 
         //TODO: Move to XML
@@ -175,6 +177,10 @@ public class AddWordsResultFragment extends Fragment implements IFragmentWithCle
     public void setResults(ArrayList<WordDefinition> results) {
         this.state = State.SHOWRESULT;
         this.definitions = results;
+    }
+
+    public ArrayList<WordDefinition> getResults() {
+        return this.definitions;
     }
 
     public void noResults() {

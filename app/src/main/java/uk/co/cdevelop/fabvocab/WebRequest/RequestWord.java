@@ -33,4 +33,7 @@ public class RequestWord {
         queue.add(new CollinsAPIRequest(word, destination));
     }
 
+    public void cancelAll() {
+        queue.cancelAll("apiRequest");
+    }
 }

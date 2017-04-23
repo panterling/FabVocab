@@ -1,10 +1,12 @@
 package uk.co.cdevelop.fabvocab.SQL.Models;
 
+import java.io.Serializable;
+
 /**
  * Created by Chris on 12/03/2017.
  */
 
-public class DefinitionEntry {
+public class DefinitionEntry implements Serializable {
     private int id;
     private String definition;
 

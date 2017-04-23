@@ -139,7 +139,7 @@ public class FabVocabSQLHelper extends SQLiteOpenHelper{
 
         db.delete(FabVocabContract.AddWordLaterTableEntry.TABLE_NAME, FabVocabContract.AddWordLaterTableEntry.COLUMN_NAME_WORD + " = ?", new String[]{word});
 
-        values.put("word", word);
+        values.put("word", word.trim().toLowerCase());
         values.put("added", FabVocabSQLHelper.getSQLTimestamp());
         values.put("audio_url", audioUrl);
         return (int) db.insert("words", null, values);

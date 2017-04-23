@@ -71,12 +71,8 @@ public class MainActivity extends AppCompatActivity
 
         setContentView(R.layout.activity_main);
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.flcontent, new HomePageFragment(), null).commit();
-
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         btnFloatingAdd = (FloatingActionButton) findViewById(R.id.fab);
         btnFloatingAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -96,12 +92,24 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        if(savedInstanceState == null)
+        {
+            getSupportFragmentManager().beginTransaction().replace(R.id.flcontent, new HomePageFragment(), null).commit();
+        }
+
 
 
         // START: SQL SETUP
-        /*FabVocabSQLHelper dbHelper = FabVocabSQLHelper.getInstance(this);
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        dbHelper.onUpgrade(dbHelper.getWritableDatabase(), 0, 0);*/
+        // Populate with dummy data
+        /*int wordId;
+        String nextWord;
+        for (int i = 0; i < 52; ++i) {
+            nextWord = ((char) (97 + (Math.floor(i/2)) )) + "DUMMY";
+            wordId = FabVocabSQLHelper.getInstance(this).addWord(nextWord, null);
+            FabVocabSQLHelper.getInstance(this).addDefinition(wordId, "Dummy definition 1");
+            FabVocabSQLHelper.getInstance(this).addDefinition(wordId, "Dummy definition 2");
+            FabVocabSQLHelper.getInstance(this).addDefinition(wordId, "Dummy definition 3");
+        }*/
         // END: SQL SETUP
 
     }

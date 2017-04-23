@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -16,6 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 import uk.co.cdevelop.fabvocab.Fragments.AddWordsFragment;
 import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
@@ -30,6 +33,7 @@ import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
 public class ManualAddDefinitionDialogFragment extends DialogFragment {
 
     private final AddWordsFragment addWordsFragment;
+    private AlertDialog dialog;
     private boolean isNewWord;
     private int wordId;
     private String wordForDefinition;
@@ -103,7 +107,7 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
                     }
                 });
 
-        final AlertDialog dialog = builder.create();
+        dialog = builder.create();
 
         etDefinition.addTextChangedListener(new TextWatcher() {
             @Override
@@ -114,11 +118,14 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                boolean newDefinition = true;
-                for (DefinitionEntry definitionEntry : existingDefinitions) {
-                    if(Helpers.isSimilar(etDefinition.getText().toString(), definitionEntry.getDefinition())) {
-                        newDefinition = false;
-                        break;
+                boolean newDefinition = false;
+                if(etDefinition.getText().toString().trim().length() > 0) {
+                    newDefinition = true;
+                    for (DefinitionEntry definitionEntry : existingDefinitions) {
+                        if (Helpers.isSimilar(etDefinition.getText().toString(), definitionEntry.getDefinition())) {
+                            newDefinition = false;
+                            break;
+                        }
                     }
                 }
 
@@ -136,4 +143,5 @@ public class ManualAddDefinitionDialogFragment extends DialogFragment {
 
         return dialog;
     }
+
 }

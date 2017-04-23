@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +18,14 @@ import android.widget.Toast;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
+import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
+import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
 import uk.co.cdevelop.fabvocab.R;
 import uk.co.cdevelop.fabvocab.SQL.FabVocabSQLHelper;
 import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
+import uk.co.cdevelop.fabvocab.Support.Constants;
 import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 import uk.co.cdevelop.fabvocab.WebRequest.RequestWord;
 
@@ -30,9 +35,14 @@ import uk.co.cdevelop.fabvocab.WebRequest.RequestWord;
 
 public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, IAddResultsViewOwner{
 
+
     private AddWordsResultsView addWordsResultsView;
     private RequestWord requester;
     private String word;
+
+
+    // Necessary to allow for screen orientation
+    public QuickAddFragment(){}
 
     public QuickAddFragment(String word) {
         this.word = word;
@@ -40,10 +50,15 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
 
     @Override
     public View onCreateView(LayoutInflater inflator, ViewGroup container, Bundle savedInstanceState) {
+        int i = 0;
         return inflator.inflate(R.layout.quickadd_main, container, false);
     }
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
+
+        if(savedInstanceState != null) {
+            word = savedInstanceState.getString("word");
+        }
 
         // Check if the word already exists in My Dictionary
         int wordId = FabVocabSQLHelper.getInstance(getContext()).getWordId(word.toLowerCase());
@@ -57,7 +72,7 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
         }
 
 
-        final LinearLayout llAddNow = (LinearLayout) view.findViewById(R.id.ll_quickadd_addnow);
+        //final LinearLayout llAddNow = (LinearLayout) view.findViewById(R.id.ll_quickadd_addnow);
         final LinearLayout llContainer = (LinearLayout) view.findViewById(R.id.ll_quickadd_container);
         final LinearLayout llAddButtons = (LinearLayout) view.findViewById(R.id.ll_quickadd_addbuttons);
         final LinearLayout llWordReview = (LinearLayout) view.findViewById(R.id.ll_quickadd_wordreview);
@@ -110,10 +125,12 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
         btnAddNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                llAddNow.setVisibility(View.VISIBLE);
+                //llAddNow.setVisibility(View.VISIBLE);
+                addWordsResultsView.setVisibility(View.VISIBLE);
                 btnAddNow.setVisibility(View.GONE);
 
                 btnDone.setEnabled(false);
+                btnDone.setVisibility(View.VISIBLE);
 
                 addWordsResultsView.setAddButton(btnDone);
 
@@ -127,8 +144,6 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
-
-                btnDone.setVisibility(View.VISIBLE);
             }
         });
 
@@ -158,6 +173,45 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
                 returnToCallingActivity();
             }
         });
+
+        if(savedInstanceState != null) {
+            AddWordsResultsView.State fragmentState = AddWordsResultsView.State.values()[ savedInstanceState.getInt("fragmentState")];
+            if(fragmentState == AddWordsResultsView.State.SHOWING_RESULTS) {
+                // Restore results and selection
+                //TODO: This is a direct copy from AddWordsFragment - functionise!
+                HashMap<String, ArrayList<WordDefinition>> apiResults = (HashMap<String, ArrayList<WordDefinition>>) savedInstanceState.get("apiResults");
+
+                ArrayList<WordDefinition> oxfordResults = apiResults.get("oxford");
+                ArrayList<WordDefinition> merriamResults = apiResults.get("merriam");
+                ArrayList<WordDefinition> collinsResults = apiResults.get("collins");
+
+                if(oxfordResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.OXFORD, new APIResultSet(oxfordResults, ""));
+                }
+
+                if(merriamResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.MW, new APIResultSet(merriamResults, ""));
+                }
+
+                if(collinsResults != null) {
+                    addWordsResultsView.giveResults(Constants.APIType.COLLINS, new APIResultSet(collinsResults, ""));
+                }
+
+
+                addWordsResultsView.setDefinitionsToAdd((ArrayList<DefinitionEntry>) savedInstanceState.get("selectedItems"));
+
+                //llAddNow.setVisibility(View.VISIBLE);
+                addWordsResultsView.setVisibility(View.VISIBLE);
+                btnAddNow.setVisibility(View.GONE);
+
+                btnDone.setEnabled(false);
+                btnDone.setVisibility(View.VISIBLE);
+
+            } else if(fragmentState == AddWordsResultsView.State.RESULTS_PENDING) {
+                btnAddNow.callOnClick();
+            }
+        }
+
     }
 
 
@@ -178,5 +232,23 @@ public class QuickAddFragment extends Fragment implements IFragmentWithCleanUp, 
         intent.putExtra(Intent.EXTRA_PROCESS_TEXT, "testing");
         ((Activity) getContext()).setResult(Activity.RESULT_OK, intent);
         ((Activity) getContext()).finish();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle bundle) {
+        super.onSaveInstanceState(bundle);
+        bundle.putString("word", word);
+
+        AddWordsResultsView.State state = addWordsResultsView.getState();
+        bundle.putInt("fragmentState", state.ordinal());
+
+        if(state == AddWordsResultsView.State.SHOWING_RESULTS) {
+            // Pass results to new AddWordsResultView
+            bundle.putSerializable("apiResults", addWordsResultsView.getResults());
+
+            // Reselect any 'selected' options
+            bundle.putSerializable("selectedItems", addWordsResultsView.getDefinitionsToAdd());
+        }
+
     }
 }

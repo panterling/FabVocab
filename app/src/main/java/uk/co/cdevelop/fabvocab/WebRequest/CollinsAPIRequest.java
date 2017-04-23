@@ -12,6 +12,8 @@ public class CollinsAPIRequest extends CustomStringRequest {
     public CollinsAPIRequest(String word, AddWordsResultsView destination) {
         super(Constants.APIType.COLLINS, Constants.URL_COLLINS.replace(Constants.URL_WORDTOKEN, word), destination, new CollinsAPIParser());
 
+        this.setTag("apiRequest");
+
         super.headers.put("Accept", "application/xml");
         super.headers.put("accessKey", Constants.APIKEY_COLLINS);
     }

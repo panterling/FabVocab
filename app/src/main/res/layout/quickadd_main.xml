@@ -75,23 +75,23 @@
                 android:gravity="center_vertical|center_horizontal" />
         </LinearLayout>
 
-        <LinearLayout
+        <!-- <LinearLayout
             android:id="@+id/ll_quickadd_addnow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:minWidth="300dp"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"> -->
 
 
-            <uk.co.cdevelop.fabvocab.Views.AddWordsResultsView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:minHeight="300dp"
-                android:minWidth="300dp"
-                android:id="@+id/awrv_quickadd_results"
-                />
-        </LinearLayout>
+        <uk.co.cdevelop.fabvocab.Views.AddWordsResultsView
+            android:id="@+id/awrv_quickadd_results"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="300dp"
+            android:minWidth="300dp"
+            android:visibility="gone" />
+        <!-- </LinearLayout> -->
 
         <LinearLayout
             android:id="@+id/ll_quickadd_wordreview"
