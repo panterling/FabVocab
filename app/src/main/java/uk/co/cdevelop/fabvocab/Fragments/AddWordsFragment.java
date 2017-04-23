@@ -38,6 +38,8 @@ import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
 import uk.co.cdevelop.fabvocab.DataModels.WordDefinition;
 import uk.co.cdevelop.fabvocab.SQL.Models.DefinitionEntry;
 import uk.co.cdevelop.fabvocab.SQL.Models.WordEntry;
+import uk.co.cdevelop.fabvocab.Subscription.AddWordsResultsViewAudioUrlSubscriber;
+import uk.co.cdevelop.fabvocab.Subscription.AddWordsResultsViewSelectionSubscriber;
 import uk.co.cdevelop.fabvocab.Support.Constants;
 import uk.co.cdevelop.fabvocab.Support.Helpers;
 import uk.co.cdevelop.fabvocab.Fragments.Dialog.ManualAddDefinitionDialogFragment;
@@ -47,7 +49,7 @@ import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
 import uk.co.cdevelop.fabvocab.Views.PronounciationPlayerView;
 import uk.co.cdevelop.fabvocab.WebRequest.RequestWord;
 
-public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, IAddResultsViewOwner {
+public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, IAddResultsViewOwner, AddWordsResultsViewSelectionSubscriber, AddWordsResultsViewAudioUrlSubscriber {
 
     private AddWordsResultsView addWordsResultsView;
     private int wordId;
@@ -100,40 +102,17 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         wordId = -1;
 
         addWordsResultsView = (AddWordsResultsView) view.findViewById(R.id.adwv_addwords_resultsview);
-        addWordsResultsView.setAddButton(btnAdd); //TODO meaningless method name
-        addWordsResultsView.setParent(this);
+        addWordsResultsView.subscribeSelectionChange(this);
+        addWordsResultsView.subscribeAudioUrl(this);
 
         // Likely an orientation change - Restore results and visibility if required
         if (savedInstanceState != null) {
             if(savedInstanceState.getBoolean("showingResults")) {
                 showingResult = true;
                 btnAdd.setVisibility(View.VISIBLE);
-                addWordsResultsView.setVisibility(View.VISIBLE);
-                addWordsResultsView.setAlpha(1.0f);
+
                 rlWord.setVisibility(View.VISIBLE);
                 rlWord.setAlpha(1.0f);
-
-                HashMap<String, ArrayList<WordDefinition>> apiResults = (HashMap<String, ArrayList<WordDefinition>>) savedInstanceState.get("apiResults");
-
-                ArrayList<WordDefinition> oxfordResults = apiResults.get("oxford");
-                ArrayList<WordDefinition> merriamResults = apiResults.get("merriam");
-                ArrayList<WordDefinition> collinsResults = apiResults.get("collins");
-
-                if(oxfordResults != null) {
-                    addWordsResultsView.giveResults(Constants.APIType.OXFORD, new APIResultSet(oxfordResults, ""));
-                }
-
-                if(merriamResults != null) {
-                    addWordsResultsView.giveResults(Constants.APIType.MW, new APIResultSet(merriamResults, ""));
-                }
-
-                if(collinsResults != null) {
-                    addWordsResultsView.giveResults(Constants.APIType.COLLINS, new APIResultSet(collinsResults, ""));
-                }
-
-
-                addWordsResultsView.setDefinitionsToAdd((ArrayList<DefinitionEntry>) savedInstanceState.get("selectedItems"));
-
             }
         }
 
@@ -384,7 +363,7 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
 
     @Override
     public void cleanUp() {
-        addWordsResultsView.cleanUp();
+        addWordsResultsView.cleanUp(); //Moved to onSaveInstanceState of AddWordsChildView
     }
 
     public boolean isChecked(String definition) {
@@ -404,11 +383,9 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
     public void onResume() {
         super.onResume();
 
-        FragmentManager fm = ((FragmentActivity) getContext()).getSupportFragmentManager();
-
         // Refresh result Fragments
         addWordsResultsView.setDefinitionsThatAlreadyExist(FabVocabSQLHelper.getInstance(getContext()).getAllDefinitions(wordId));
-        addWordsResultsView.refreshResultsFragments();
+        //addWordsResultsView.refreshResultsFragments();
 
     }
 
@@ -416,23 +393,22 @@ public class AddWordsFragment extends Fragment implements IFragmentWithCleanUp, 
         return addWordsResultsView;
     }
 
-    public void giveAudioUrl(String audioUrl) {
-        ppvAudio.giveSource(audioUrl);
-    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putBoolean("showingResults", showingResult);
+        * IMPLEMENT fragmentState, as-in QuickADdFragment... to facilitate re-requesting of words if the orientation changes before request notifies of completion*
+    }
 
-        if(showingResult) {
-            // Pass results to new AddWordsResultView
-            outState.putSerializable("apiResults", addWordsResultsView.getResults());
+    @Override
+    public void selectionChanged(int selectionSize) {
+        btnAdd.setEnabled(selectionSize > 0);
+    }
 
-            // Reselect any 'selected' options
-            outState.putSerializable("selectedItems", addWordsResultsView.getDefinitionsToAdd());
-        }
+    @Override
+    public void audioUrlChange(String audioUrl) {
+        ppvAudio.giveSource(audioUrl);
     }
 
     /*@Override

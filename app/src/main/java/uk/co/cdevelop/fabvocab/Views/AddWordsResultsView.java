@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import uk.co.cdevelop.fabvocab.Subscription.AddWordsResultsViewSelectionSubscriber;
+import uk.co.cdevelop.fabvocab.Subscription.AddWordsResultsViewAudioUrlSubscriber;
 import uk.co.cdevelop.fabvocab.Support.SaveState;
 import uk.co.cdevelop.fabvocab.Adapters.AddWordsResultFragmentPagerAdapter;
 import uk.co.cdevelop.fabvocab.DataModels.APIResultSet;
@@ -32,6 +34,8 @@ import uk.co.cdevelop.fabvocab.R;
 
 public class AddWordsResultsView extends LinearLayout {
 
+
+
     public enum State {
         IDLE,
         RESULTS_PENDING,
@@ -39,23 +43,29 @@ public class AddWordsResultsView extends LinearLayout {
     }
 
 
-    public void setDefinitionsToAdd(ArrayList<DefinitionEntry> definitionsToAdd) {
-        this.definitionsToAdd = definitionsToAdd;
-    }
-
-    private AddWordsFragment parent;
     private AddWordsResultFragmentPagerAdapter adapter;
     private ArrayList<DefinitionEntry> definitionsToAdd;
     private ArrayList<DefinitionEntry> definitionsAlreadyExist;
-    private Button btnDone;
     private AddWordsResultFragment[] fragments;
     private String audioUrl = "";
+
+    private ArrayList<AddWordsResultsViewSelectionSubscriber> selectionChangeSubscribers = new ArrayList<>();
+    private ArrayList<AddWordsResultsViewAudioUrlSubscriber> audioUrlSubscribers = new ArrayList<>();
+    public void subscribeSelectionChange(AddWordsResultsViewSelectionSubscriber subscriber) {
+        selectionChangeSubscribers.add(subscriber);
+    }
+    public void subscribeAudioUrl(AddWordsResultsViewAudioUrlSubscriber subscriber) {
+        audioUrlSubscribers.add(subscriber);
+    }
+    // Unsubscribe functions here AS-AND-WHEN-NEEDED
 
     private State resultState = State.IDLE;
     private boolean resultsReceived[];
 
     public AddWordsResultsView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        Log.i("stateTransition", "AddWordsResultsView: Constructor");
 
         LinearLayout container = (LinearLayout) inflate(getContext(), R.layout.addwordsresult, this);
 
@@ -96,14 +106,6 @@ public class AddWordsResultsView extends LinearLayout {
         return resultState;
     }
 
-    public void setParent(AddWordsFragment parent) {
-        this.parent = parent;
-    }
-
-    //TODO: Ditch this dangerous function
-    public void setAddButton(Button btnDone) {
-        this.btnDone = btnDone;
-    }
 
     public void giveResults(Constants.APIType owner, APIResultSet response) {
         if(adapter != null) {
@@ -115,9 +117,7 @@ public class AddWordsResultsView extends LinearLayout {
                 if(audioUrl.equals("")) {
                     audioUrl = response.getAudioUrl();
 
-                    if(parent != null) {
-                        parent.giveAudioUrl(audioUrl);
-                    }
+                    publishAudioUrl();
                 }
 
             }
@@ -128,11 +128,11 @@ public class AddWordsResultsView extends LinearLayout {
 
     public void addDefinitionForSaving(String definition){
         definitionsToAdd.add(new DefinitionEntry(-1, definition));
-        btnDone.setEnabled(definitionsToAdd.size() > 0);
+        publishSelectionChange();
     }
     public void removeDefinitionForSaving(String definition){
-        definitionsToAdd.remove(definition);
-        btnDone.setEnabled(definitionsToAdd.size() > 0);
+        definitionsToAdd.remove(new DefinitionEntry(-1, definition));
+        publishSelectionChange();
     }
 
     public boolean isChecked(String definition) {
@@ -180,13 +180,6 @@ public class AddWordsResultsView extends LinearLayout {
         return definitionsAlreadyExist.contains(new DefinitionEntry(-1, definition));
     }
 
-    public void detachChildren() {
-        FragmentManager fm = ((FragmentActivity) getContext()).getSupportFragmentManager();
-        for(Fragment f : fragments) {
-            fm.beginTransaction().detach(f).commit();
-        }
-    }
-
     public void definitionAddedToDB() {
         definitionsAlreadyExist.addAll(definitionsToAdd);
         definitionsToAdd.clear();
@@ -204,17 +197,54 @@ public class AddWordsResultsView extends LinearLayout {
         return true;
     }
 
+    public void publishSelectionChange() {
+        for(AddWordsResultsViewSelectionSubscriber subscriber : selectionChangeSubscribers) {
+            subscriber.selectionChanged(definitionsToAdd.size());
+        }
+    }
+
+    public void publishAudioUrl() {
+        for(AddWordsResultsViewAudioUrlSubscriber subscriber : audioUrlSubscribers) {
+            subscriber.audioUrlChange(audioUrl);
+        }
+    }
+
     @Override
     public void onRestoreInstanceState(Parcelable savedInstanceState) {
         SaveState state = (SaveState) savedInstanceState;
         super.onRestoreInstanceState(state.getSuperState());
 
+        Log.i("stateTransition", "AddWordsResultsView: Restore");
+
         if (savedInstanceState != null) // implicit null check
         {
             Bundle bundle = state.getBundle();
-            if(bundle.getBoolean("showResults")) {
+            resultState = State.values()[bundle.getInt("resultState")];
+
+            if(resultState == State.SHOWING_RESULTS) {
                 setVisibility(View.VISIBLE);
                 setAlpha(1.0f);
+
+                ArrayList<WordDefinition> oxfordResults = (ArrayList<WordDefinition>) bundle.getSerializable("oxford");
+                ArrayList<WordDefinition> merriamResults = (ArrayList<WordDefinition>) bundle.getSerializable("merriam");
+                ArrayList<WordDefinition> collinsResults = (ArrayList<WordDefinition>) bundle.getSerializable("collins");
+                fragments[0].setResults(oxfordResults);
+                fragments[1].setResults(merriamResults);
+                fragments[2].setResults(collinsResults);
+
+                adapter.notifyDataSetChanged();
+
+                this.definitionsToAdd = (ArrayList<DefinitionEntry>) bundle.getSerializable("definitionsToAdd");
+
+            } else if(resultState == State.RESULTS_PENDING) {
+                setVisibility(View.VISIBLE);
+                setAlpha(1.0f);
+
+                fragments[0].setAsInProgress();
+                fragments[1].setAsInProgress();
+                fragments[2].setAsInProgress();
+
+                adapter.notifyDataSetChanged();
             }
         }
 
@@ -224,23 +254,21 @@ public class AddWordsResultsView extends LinearLayout {
     public Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
 
+
         Bundle bundle = new Bundle();
 
         // TODO: Determine based on current state
-        bundle.putBoolean("showResults", true);
+        bundle.putInt("resultState", resultState.ordinal());
+        if(resultState == State.SHOWING_RESULTS) {
+            bundle.putSerializable("oxford", fragments[0].getResults());
+            bundle.putSerializable("merriam", fragments[1].getResults());
+            bundle.putSerializable("collins", fragments[2].getResults());
+
+            bundle.putSerializable("definitionsToAdd", definitionsToAdd);
+        }
 
         SaveState state = new SaveState(superState, bundle);
 
         return state;
-    }
-
-    public HashMap<String, ArrayList<WordDefinition>> getResults() {
-        HashMap<String, ArrayList<WordDefinition>> results = new HashMap<>();
-
-        results.put("oxford", fragments[0].getResults());
-        results.put("merriam", fragments[1].getResults());
-        results.put("collins", fragments[2].getResults());
-
-        return results;
     }
 }

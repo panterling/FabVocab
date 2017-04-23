@@ -167,14 +167,21 @@ public class FabVocabSQLHelper extends SQLiteOpenHelper{
         return definitions;
     }
 
-    public ArrayList<WordEntry> getRecentlyAddedWords() {
+    public ArrayList<WordEntry> getRecentlyAddedWords() { return getRecentlyAddedWords(-1); }
+    public ArrayList<WordEntry> getRecentlyAddedWords(int limit) {
         ArrayList<WordEntry> wordsList = new ArrayList<>();
+
+        String limitClause = "";
+        if(limit > 0) {
+            limitClause = "LIMIT " + Integer.toString(limit);
+        }
+
         Cursor cursor = db.rawQuery("SELECT "
                                 + FabVocabContract.WordTableEntry._ID + ", "
                                 + FabVocabContract.WordTableEntry.COLUMN_NAME_WORD + ", "
                                 + FabVocabContract.WordTableEntry.COLUMN_NAME_ADDED
                                 + " FROM " + FabVocabContract.WordTableEntry.TABLE_NAME
-                                + " WHERE added > datetime('now', '-7 days') ORDER BY added DESC", null);
+                                + " WHERE added > datetime('now', '-7 days') ORDER BY added DESC " + limitClause, null);
         while(cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndex(FabVocabContract.WordTableEntry._ID));
             String word = cursor.getString(cursor.getColumnIndex(FabVocabContract.WordTableEntry.COLUMN_NAME_WORD));

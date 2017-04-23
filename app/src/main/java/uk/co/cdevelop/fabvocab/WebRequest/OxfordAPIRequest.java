@@ -9,7 +9,7 @@ import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
  */
 
 class OxfordAPIRequest extends CustomStringRequest {
-    public OxfordAPIRequest(String word, AddWordsResultsView destination) {
+    public OxfordAPIRequest(String word, RequestWord destination) {
         super(Constants.APIType.OXFORD, Constants.URL_OXFORD.replace(Constants.URL_WORDTOKEN, word), destination, new OxfordAPIParser());
 
         this.setTag("apiRequest");

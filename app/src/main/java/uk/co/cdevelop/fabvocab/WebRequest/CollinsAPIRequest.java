@@ -9,7 +9,7 @@ import uk.co.cdevelop.fabvocab.Views.AddWordsResultsView;
  */
 
 public class CollinsAPIRequest extends CustomStringRequest {
-    public CollinsAPIRequest(String word, AddWordsResultsView destination) {
+    public CollinsAPIRequest(String word, RequestWord destination) {
         super(Constants.APIType.COLLINS, Constants.URL_COLLINS.replace(Constants.URL_WORDTOKEN, word), destination, new CollinsAPIParser());
 
         this.setTag("apiRequest");

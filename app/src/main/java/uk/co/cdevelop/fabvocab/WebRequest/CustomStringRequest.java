@@ -28,7 +28,7 @@ class CustomStringRequest extends StringRequest {
 
     HashMap<String, String> headers;
 
-    CustomStringRequest(final APIType owner, String url, final AddWordsResultsView destination, final APIParser parser) {
+    CustomStringRequest(final APIType owner, String url, final RequestWord destination, final APIParser parser) {
         super(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override

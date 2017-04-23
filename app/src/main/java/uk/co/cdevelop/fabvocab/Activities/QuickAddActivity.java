@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Window;
 
+import uk.co.cdevelop.fabvocab.Fragments.HomePageFragment;
 import uk.co.cdevelop.fabvocab.Fragments.QuickAddFragment;
 import uk.co.cdevelop.fabvocab.R;
 
@@ -21,7 +22,11 @@ public class QuickAddActivity extends AppCompatActivity {
                 .getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT);
 
         setContentView(R.layout.activity_quickadd);
-        getSupportFragmentManager().beginTransaction().replace(R.id.flcontent_quickadd, new QuickAddFragment(wordText.toString())).commit();
+
+        if(savedInstanceState == null)
+        {
+            getSupportFragmentManager().beginTransaction().replace(R.id.flcontent_quickadd, new QuickAddFragment(wordText.toString())).commit();
+        }
 
     }
 }

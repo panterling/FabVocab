@@ -67,7 +67,7 @@ public class RecentlyAddedWordsListAdapter extends ArrayAdapter<WordEntry> imple
     private void showAll() {
         wordsList.clear();
 
-        ArrayList<WordEntry> dbWordsList = FabVocabSQLHelper.getInstance(getContext()).getRecentlyAddedWords();
+        ArrayList<WordEntry> dbWordsList = FabVocabSQLHelper.getInstance(getContext()).getRecentlyAddedWords(5);
         if(dbWordsList != null && dbWordsList.size() > 0) {
             ArrayList<String> recentlyAddedWordsList = new ArrayList<>();
                 wordsList.addAll(dbWordsList);
